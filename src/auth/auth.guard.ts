@@ -9,7 +9,9 @@ import { Observable } from 'rxjs';
 
 const tokens: string[] = readFileSync('api_tokens.txt', {
   encoding: 'utf-8',
-}).split('\n');
+})
+  .toString()
+  .split('\n');
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -18,8 +20,8 @@ export class AuthGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
     if (
-      request.headers['X-API-TOKEN'] &&
-      tokens.includes(request.headers['X-API-TOKEN'])
+      request.headers['x-api-token'] &&
+      tokens.includes(request.headers['x-api-token'])
     ) {
       return true;
     }
