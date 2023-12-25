@@ -12,7 +12,8 @@ import {
 } from '../types';
 import { toLanguageShort } from '../utils';
 import { hostManager } from '../managers';
-const BASE_URL = 'http://186.2.175.5/';
+
+const BASE_URL = 'https://s.to/';
 const http = axios.create({
   baseURL: BASE_URL,
 });
@@ -20,7 +21,7 @@ const http = axios.create({
 export class SerienstreamProvider implements ISerieProvider {
   id = '350c564f-0eaa-4dca-9420-dac51b83e652' as UUID;
   name = 'serienstream';
-  type = 'serie' as 'serie';
+  type = 'serie' as const;
   async searchSerie(query: string): Promise<ISerie[]> {
     const response = await http.post<
       { title: string; description: string; link: string }[]
@@ -29,7 +30,7 @@ export class SerienstreamProvider implements ISerieProvider {
       .filter((s) => {
         let count = 0;
         for (
-          var i = (count = 0);
+          let i = (count = 0);
           i < s.link.length;
           count += +('/' === s.link[i++])
         );
