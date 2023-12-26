@@ -43,7 +43,7 @@ async function makePOST<T>(url: string, body: any) {
     });
     return new JSDOM(
       ((await data).data as any).solution.response,
-    ).window.document.querySelector('pre').innerHTML;
+    ).window.document.querySelector('pre').textContent;
   }
   return JSON.stringify(
     (await http.post<T>(url, new URLSearchParams(body))).data,
