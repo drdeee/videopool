@@ -1,9 +1,30 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  OnApplicationBootstrap,
+  OnApplicationShutdown,
+} from '@nestjs/common';
+import axios from 'axios';
 import { UUID } from 'crypto';
 import { ProviderManager } from 'src/lib/managers';
 
 @Injectable()
-export class MediaService {
+export class MediaService
+  implements OnApplicationBootstrap, OnApplicationShutdown
+{
+  onApplicationBootstrap() {
+    if (process.env.CLOUDFLARE_BYPASS === 'TRUE')
+      axios.post('http://localhost:8191/v1', {
+        cmd: 'sessions.create',
+        session: 's.to',
+      });
+  }
+  onApplicationShutdown() {
+    if (process.env.CLOUDFLARE_BYPASS === 'TRUE')
+      axios.post('http://localhost:8191/v1', {
+        cmd: 'sessions.destroy',
+        session: 's.to',
+      });
+  }
   private readonly providerManager = new ProviderManager();
 
   async search(

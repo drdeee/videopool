@@ -18,15 +18,50 @@ const http = axios.create({
   baseURL: BASE_URL,
 });
 
+async function makeGET(url: string) {
+  if (process.env.CLOUDFLARE_BYPASS === 'TRUE') {
+    return (
+      (
+        await http.post('http://localhost:8191/v1', {
+          cmd: 'request.get',
+          url: new URL(url, BASE_URL).href,
+          session: 's.to',
+        })
+      ).data as any
+    ).solution.response;
+  }
+  return await http.get(url);
+}
+
+async function makePOST<T>(url: string, body: any) {
+  if (process.env.CLOUDFLARE_BYPASS === 'TRUE') {
+    const data = await http.post<T>('http://localhost:8191/v1', {
+      cmd: 'request.post',
+      url: new URL(url, BASE_URL).href,
+      session: 's.to',
+      postData: new URLSearchParams(body).toString(),
+    });
+    return new JSDOM(
+      ((await data).data as any).solution.response,
+    ).window.document.querySelector('pre').innerHTML;
+  }
+  return JSON.stringify(
+    (await http.post<T>(url, new URLSearchParams(body))).data,
+  );
+}
+
 export class SerienstreamProvider implements ISerieProvider {
   id = '350c564f-0eaa-4dca-9420-dac51b83e652' as UUID;
   name = 'serienstream';
   type = 'serie' as const;
   async searchSerie(query: string): Promise<ISerie[]> {
-    const response = await http.post<
-      { title: string; description: string; link: string }[]
-    >('/ajax/search', new URLSearchParams({ keyword: query }));
-    return response.data
+    const response = JSON.parse(
+      await makePOST<{ title: string; description: string; link: string }[]>(
+        '/ajax/search',
+        new URLSearchParams({ keyword: query }),
+      ),
+    );
+    return response
       .filter((s) => {
         let count = 0;
         for (
@@ -48,7 +83,7 @@ export class SerienstreamProvider implements ISerieProvider {
     serieId: string,
     options: ISerieRetrievalOptions = { loadSeasonsComplete: false },
   ): Promise<ISerieDetails> {
-    const response = await http.get(serieId);
+    const response = await makeGET(serieId);
     const { document } = new JSDOM(response.data).window;
     const seasons: ISeason[] = [];
     await Promise.all(
@@ -86,7 +121,7 @@ export class SerienstreamProvider implements ISerieProvider {
   }
 
   async retrieveSeason(seasonId: string): Promise<ISeason> {
-    const response = await http.get(seasonId);
+    const response = await makeGET(seasonId);
     const { document } = new JSDOM(response.data).window;
     const seasonNumber = parseInt(
       document.querySelector('#stream > ul:first-child a.active')
@@ -121,7 +156,7 @@ export class SerienstreamProvider implements ISerieProvider {
   }
 
   async retrieveEpisode(episodeId: string): Promise<IEpisode> {
-    const response = await http.get(episodeId);
+    const response = await makeGET(episodeId);
     const { document } = new JSDOM(response.data).window;
     const languages = Array.from(
       document.querySelectorAll('.changeLanguageBox > img'),
