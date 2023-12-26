@@ -70,34 +70,41 @@ export class ProviderManager {
     const movies: IMovie[] = [];
     await Promise.all(
       Array.from(this.providers.values()).map(async (provider) => {
-        switch (provider.type) {
-          case 'serie':
-            if (searchSeries) {
-              series.push(
-                ...(await (provider as ISerieProvider).searchSerie(query)),
+        try {
+          switch (provider.type) {
+            case 'serie':
+              if (searchSeries) {
+                series.push(
+                  ...(await (provider as ISerieProvider).searchSerie(query)),
+                );
+              }
+              break;
+            case 'movie':
+              if (searchMovies) {
+                movies.push(
+                  ...(await (provider as IMovieProvider).searchMovie(query)),
+                );
+              }
+              break;
+            case 'general':
+              const results = await (provider as IGeneralProvider).search(
+                query,
+                {
+                  series: searchSeries,
+                  movies: searchMovies,
+                },
               );
-            }
-            break;
-          case 'movie':
-            if (searchMovies) {
-              movies.push(
-                ...(await (provider as IMovieProvider).searchMovie(query)),
-              );
-            }
-            break;
-          case 'general':
-            const results = await (provider as IGeneralProvider).search(query, {
-              series: searchSeries,
-              movies: searchMovies,
-            });
-            series.push(...results.series);
-            movies.push(...results.movies);
+              series.push(...results.series);
+              movies.push(...results.movies);
+          }
+        } catch (error) {
+          console.error(error);
         }
       }),
     );
     return {
-      series: series.length > 0 ? series : null,
-      movies: movies.length > 0 ? movies : null,
+      series: searchSeries ? series : null,
+      movies: searchMovies ? movies : null,
     };
   }
 
