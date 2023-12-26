@@ -74,4 +74,12 @@ export class AppController {
   ): Promise<IMedia> {
     return await this.downloadService.getDownloadInformation(source, hostId);
   }
+
+  @Get('/meta')
+  getMetadata() {
+    return {
+      providers: this.mediaService.getMetadata(),
+      hosts: this.downloadService.getMetadata(),
+    };
+  }
 }

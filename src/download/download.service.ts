@@ -13,4 +13,13 @@ export class DownloadService {
     }
     return await host.getMedia({ source, hostId });
   }
+
+  getMetadata() {
+    return this.hostManager.getHosts().map((host) => ({
+      id: host.id,
+      name: host.name,
+      type: host.mediaType,
+      isSupported: host.isSupported,
+    }));
+  }
 }

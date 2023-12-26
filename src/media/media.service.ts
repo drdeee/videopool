@@ -49,4 +49,12 @@ export class MediaService
   async getMovieDetails(movieId: string, providerId: UUID) {
     return this.providerManager.getMovieDetails(movieId, providerId);
   }
+
+  getMetadata() {
+    return this.providerManager.getProviders().map((provider) => ({
+      id: provider.id,
+      name: provider.name,
+      type: provider.type,
+    }));
+  }
 }

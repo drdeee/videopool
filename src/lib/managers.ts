@@ -43,6 +43,10 @@ export class HostManager {
   getHost(id: UUID): IHost | undefined {
     return this.hosts.get(id) || undefined;
   }
+
+  getHosts(): IHost[] {
+    return Array.from(this.hosts.values());
+  }
 }
 
 export const hostManager = new HostManager();
@@ -57,6 +61,10 @@ export class ProviderManager {
 
   private registerProvider(provider: IProvider) {
     this.providers.set(provider.id, provider);
+  }
+
+  getProviders(): IProvider[] {
+    return Array.from(this.providers.values());
   }
 
   async search(
